@@ -1,18 +1,26 @@
-const notificationReducer = (state = '', action) => {
+const initialState = {
+  message: '',
+  timeOutId: null,
+};
+
+const notificationReducer = (state = initialState, action) => {
   switch (action.type) {
     case 'SET_NOTIFICATION':
-      return action.message;
+      return action.data;
     case 'RESET_NOTIFICATION':
-      return '';
+      return initialState;
     default:
       return state;
   }
 };
 
-const createNotification = (message) => {
+const createNotification = (message, timeOutId) => {
   return {
     type: 'SET_NOTIFICATION',
-    message,
+    data: {
+      message,
+      timeOutId,
+    },
   };
 };
 
@@ -23,11 +31,18 @@ const resetNotification = () => {
 };
 
 export const setNotification = (message, timeToDisplay) => {
-  return (dispatch) => {
-    dispatch(createNotification(message));
-    setTimeout(() => {
+  return (dispatch, getState) => {
+    const { notification } = getState();
+
+    const autoReset = setTimeout(() => {
       dispatch(resetNotification());
     }, timeToDisplay * 1000);
+
+    dispatch(createNotification(message, autoReset));
+
+    if (notification.timeOutId !== null) {
+      clearTimeout(notification.timeOutId);
+    }
   };
 };
 
